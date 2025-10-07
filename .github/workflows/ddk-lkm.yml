@@ -10,7 +10,7 @@ on:
       ddk_release:
         description: 'DDK release version'
         required: false
-        default: '20250825'
+        default: '20251007'
         type: string
       kernelsu_tag:
         description: 'KernelSU release tag or commit'
@@ -23,7 +23,7 @@ jobs:
     name: Build kernelsu.ko for ${{ inputs.kmi }}
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/ylarod/ddk-dev:${{ inputs.kmi }}-${{ inputs.ddk_release }}
+      image: ghcr.io/ylarod/ddk:${{ inputs.kmi }}-${{ inputs.ddk_release }}
       options: --privileged
 
     steps:
