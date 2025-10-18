@@ -26,7 +26,7 @@ jobs:
           - android16-6.12
     with:
       kmi: ${{ matrix.kmi }}
-      ddk_release: '20251007'
+      ddk_release: '20251016'
       kernelsu_tag: ${{ github.event.inputs.kernelsu_tag || 'main' }}
 
   collect-artifacts:
