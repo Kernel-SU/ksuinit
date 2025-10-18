@@ -29,7 +29,7 @@ jobs:
           - android15-6.6
     with:
       kmi: ${{ matrix.kmi }}
-      ddk_release: '20251007'
+      ddk_release: '20251016'
       kernelsu_tag: 'main'
 
   build-ksuinit:
