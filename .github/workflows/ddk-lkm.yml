@@ -54,7 +54,7 @@ jobs:
 
         echo "=== Building kernelsu.ko for KMI: ${{ inputs.kmi }} ==="
 
-        KSU_GIT_VERSION=$(git rev-list --count HEAD) make
+        CONFIG_KSU=m make
         
         echo "=== Build completed ==="
 
