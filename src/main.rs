@@ -2,7 +2,7 @@
 
 mod init;
 mod loader;
-
+use obfstr::obfstr as s;
 use rustix::{cstr, runtime::execve};
 /// # Safety
 /// This is the entry point of the program
@@ -11,9 +11,13 @@ use rustix::{cstr, runtime::execve};
 /// So we use the C main function and call rust code from there
 #[no_mangle]
 pub unsafe extern "C" fn main(_argc: i32, argv: *const *const u8, envp: *const *const u8) -> i32 {
-    let _ = init::init();
-    unsafe {
-        execve(cstr!("/init"), argv, envp);
+    if rustix::process::getpid().is_init() {
+        let _ = init::init();
+        unsafe {
+            execve(cstr!("/init"), argv, envp);
+        }
+    } else {
+        eprintln!("{}", s!("This program should be run as init process (pid 1)"));
     }
     0
 }
