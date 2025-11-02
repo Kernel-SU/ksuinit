@@ -361,7 +361,7 @@ fn has_kernelsu_v2() -> bool {
     use syscalls::{syscall, Sysno};
     const KSU_INSTALL_MAGIC1: u32 = 0xDEADBEEF;
     const KSU_INSTALL_MAGIC2: u32 = 0xCAFEBABE;
-    const KSU_IOCTL_GET_INFO: u32 = 0x80084b02; // _IOR('K', 2, struct ksu_get_info_cmd)
+    const KSU_IOCTL_GET_INFO: u32 = 0x80004b02; // _IOC(_IOC_READ, 'K', 2, 0)
     const CMD_GET_VERSION: i32 = 2;
 
     #[repr(C)]
