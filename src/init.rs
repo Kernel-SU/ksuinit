@@ -1,6 +1,7 @@
 use std::io::{ErrorKind, Write};
 
-use crate::loader::load_module;
+use crate::loader::load_module_from_path;
+use crate::boot::{has_kernelsu, load_module_from_boot};
 use anyhow::Result;
 use rustix::fs::{chmodat, symlink, unlink, AtFlags, Mode};
 use rustix::{
@@ -69,6 +70,12 @@ fn prepare_mount() -> AutoUmount {
         Err(e) => log::error!("{} {:?}", s!("Cannot mount sysfs:"), e),
     }
 
+    // mount devfs
+    match do_mount("/dev", "tmpfs") {
+        Ok(_) => mountpoints.push("/dev".to_string()),
+        Err(e) => log::error!("{} {:?}", s!("Cannot mount devfs:"), e),
+    }
+
     AutoUmount { mountpoints }
 }
 
@@ -118,9 +125,20 @@ pub fn init() -> Result<()> {
     if has_kernelsu() {
         log::info!("{}", s!("KernelSU may be already loaded in kernel, skip!"));
     } else {
-        log::info!("{}", s!("Loading kernelsu.ko.."));
-        if let Err(e) = load_module(s!("/kernelsu.ko")) {
-            log::error!("{}: {}", s!("Cannot load kernelsu.ko"), e);
+        let mut loaded = false;
+        if access(s!("/.allow_load_module_from_boot"), Access::EXISTS).is_ok() {
+            log::info!("{}", s!("Loading KernelSU from boot.."));
+            if let Err(e) = load_module_from_boot() {
+                log::error!("{}: {}", s!("Cannot load KernelSU from boot"), e);
+            } else {
+                loaded = true;
+            }
+        }
+        if !loaded {
+            log::info!("{}", s!("Loading kernelsu.ko.."));
+            if let Err(e) = load_module_from_path(s!("/kernelsu.ko")) {
+                log::error!("{}: {}", s!("Cannot load kernelsu.ko"), e);
+            }
         }
     }
 
@@ -143,22 +161,4 @@ pub fn init() -> Result<()> {
     )?;
 
     Ok(())
-}
-
-fn has_kernelsu() -> bool {
-    use syscalls::{syscall, Sysno};
-    let mut version = 0;
-    const CMD_GET_VERSION: i32 = 2;
-    unsafe {
-        let _ = syscall!(
-            Sysno::prctl,
-            0xDEADBEEF,
-            CMD_GET_VERSION,
-            std::ptr::addr_of_mut!(version)
-        );
-    }
-
-    log::info!("{}: {}", s!("KernelSU version"), version);
-
-    version != 0
 }

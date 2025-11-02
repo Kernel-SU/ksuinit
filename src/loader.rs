@@ -50,19 +50,15 @@ fn parse_kallsyms() -> Result<HashMap<String, u64>> {
 
     Ok(allsyms)
 }
+pub fn load_module_from_path(path: &str) -> Result<()> {
+    let mut buffer = fs::read(path).with_context(|| format!("{} {}", s!("Cannot read file"), path))?;
+    load_module(&mut buffer)
+}
 
-pub fn load_module(path: &str) -> Result<()> {
-    // check if self is init process(pid == 1)
-    if !rustix::process::getpid().is_init() {
-        anyhow::bail!("{}", s!("Invalid process"));
-    }
-
-    let mut buffer =
-        fs::read(path).with_context(|| format!("{} {}", s!("Cannot read file"), path))?;
+pub fn load_module(buffer: &mut Vec<u8>) -> Result<()> {
     let elf = Elf::parse(&buffer)?;
 
-    let kernel_symbols =
-        parse_kallsyms().with_context(|| s!("Cannot parse kallsyms").to_string())?;
+    let kernel_symbols = parse_kallsyms().with_context(|| s!("Cannot parse kallsyms").to_string())?;
 
     let mut modifications = Vec::new();
     for (index, mut sym) in elf.syms.iter().enumerate() {

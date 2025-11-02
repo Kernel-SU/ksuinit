@@ -1,5 +1,6 @@
 #![no_main]
 
+mod boot;
 mod init;
 mod loader;
 use obfstr::obfstr as s;
