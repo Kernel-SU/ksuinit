@@ -28,16 +28,13 @@ impl Drop for AutoUmount {
     }
 }
 
-fn prepare_mount() -> AutoUmount {
-    let mut mountpoints = vec![];
-
-    // mount procfs
-    let result = mkdir("/proc", Mode::from_raw_mode(0o755))
+fn do_mount(mountpoint: &str, fstype: &str) -> rustix::io::Result<()> {
+    mkdir(mountpoint, Mode::from_raw_mode(0o755))
         .or_else(|err| match err.kind() {
             ErrorKind::AlreadyExists => Ok(()),
             _ => Err(err),
         })
-        .and_then(|_| fsopen("proc", FsOpenFlags::FSOPEN_CLOEXEC))
+        .and_then(|_| fsopen(fstype, FsOpenFlags::FSOPEN_CLOEXEC))
         .and_then(|fd| fsconfig_create(fd.as_fd()).map(|_| fd))
         .and_then(|fd| {
             fsmount(
@@ -51,41 +48,23 @@ fn prepare_mount() -> AutoUmount {
                 fd.as_fd(),
                 "",
                 CWD,
-                "/proc",
+                mountpoint,
                 MoveMountFlags::MOVE_MOUNT_F_EMPTY_PATH,
             )
-        });
-    match result {
+        })
+}
+
+fn prepare_mount() -> AutoUmount {
+    let mut mountpoints = vec![];
+
+    // mount procfs
+    match do_mount("/proc", "proc") {
         Ok(_) => mountpoints.push("/proc".to_string()),
         Err(e) => log::error!("{} {:?}", s!("Cannot mount procfs: "), e),
     }
 
     // mount sysfs
-    let result = mkdir("/sys", Mode::from_raw_mode(0o755))
-        .or_else(|err| match err.kind() {
-            ErrorKind::AlreadyExists => Ok(()),
-            _ => Err(err),
-        })
-        .and_then(|_| fsopen("sysfs", FsOpenFlags::FSOPEN_CLOEXEC))
-        .and_then(|fd| fsconfig_create(fd.as_fd()).map(|_| fd))
-        .and_then(|fd| {
-            fsmount(
-                fd.as_fd(),
-                FsMountFlags::FSMOUNT_CLOEXEC,
-                MountAttrFlags::empty(),
-            )
-        })
-        .and_then(|fd| {
-            move_mount(
-                fd.as_fd(),
-                "",
-                CWD,
-                "/sys",
-                MoveMountFlags::MOVE_MOUNT_F_EMPTY_PATH,
-            )
-        });
-
-    match result {
+    match do_mount("/sys", "sysfs") {
         Ok(_) => mountpoints.push("/sys".to_string()),
         Err(e) => log::error!("{} {:?}", s!("Cannot mount sysfs:"), e),
     }
