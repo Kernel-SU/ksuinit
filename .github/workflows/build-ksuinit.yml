@@ -14,45 +14,13 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-kernelsu-ko:
-    name: Build kernelsu.ko for ${{ matrix.kmi }}
-    uses: ./.github/workflows/ddk-lkm.yml
-    strategy:
-      fail-fast: false
-      matrix:
-        kmi:
-          - android12-5.10
-          - android13-5.10
-          - android13-5.15
-          - android14-5.15
-          - android14-6.1
-          - android15-6.6
-    with:
-      kmi: ${{ matrix.kmi }}
-      ddk_release: '20251016'
-      kernelsu_tag: 'main'
-
   build-ksuinit:
     name: Build ksuinit
     runs-on: ubuntu-latest
-    needs: build-kernelsu-ko
 
     steps:
     - name: Checkout source code
       uses: actions/checkout@v4
-
-    - name: Download all artifacts
-      uses: actions/download-artifact@v4
-      with:
-        path: assets
-    
-    - name: List built modules
-      run: |
-        echo "=== Built KernelSU Modules ==="
-        ls -al .
-        find assets -name "*.ko" -type f | while read ko_file; do
-          echo "📦 $(basename "$ko_file") ($(du -h "$ko_file" | cut -f1))"
-        done
 
     - name: Install Rust target
       run: |
