@@ -2,13 +2,13 @@ name: Build ksuinit
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "main" ]
     tags: [ 'v*.*.*' ]
     paths:
       - '.github/workflows/build-ksuinit.yml'
       - 'src/**'
   pull_request:
-    branches: [ "master" ]
+    branches: [ "main" ]
     paths:
       - 'src/**'
   workflow_dispatch:
