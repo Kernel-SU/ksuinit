@@ -7,10 +7,12 @@ on:
     paths:
       - '.github/workflows/build-ksuinit.yml'
       - 'src/**'
+      - 'build.zig'
   pull_request:
     branches: [ "master" ]
     paths:
       - 'src/**'
+      - 'build.zig'
   workflow_dispatch:
 
 jobs:
@@ -22,37 +24,32 @@ jobs:
     - name: Checkout source code
       uses: actions/checkout@v4
 
-    - name: Install Rust target
-      run: |
-        rustup update stable
-        rustup target add aarch64-unknown-linux-musl
-        rustup target add x86_64-unknown-linux-musl
-        RUSTFLAGS="" cargo install cross --git https://github.com/cross-rs/cross --rev 66845c1
+    - name: Setup Zig
+      uses: mlugg/setup-zig@v1
+      with:
+        version: 0.13.0
 
-    - name: Build for aarch64
-      run: cross build --target aarch64-unknown-linux-musl --release
-
-    - name: Build for x86_64
-      run: cross build --target x86_64-unknown-linux-musl --release
+    - name: Build
+      run: zig build -Doptimize=ReleaseSmall
 
     - name: Upload aarch64 binary
       uses: actions/upload-artifact@v4
       with:
         name: ksuinit-aarch64
-        path: target/aarch64-unknown-linux-musl/release/ksuinit
+        path: zig-out/aarch64/ksuinit
 
     - name: Upload x86_64 binary
       uses: actions/upload-artifact@v4
       with:
         name: ksuinit-x86_64
-        path: target/x86_64-unknown-linux-musl/release/ksuinit
+        path: zig-out/x86_64/ksuinit
 
     - name: Prepare release assets
       if: startsWith(github.ref, 'refs/tags/')
       run: |
         mkdir -p release
-        cp target/aarch64-unknown-linux-musl/release/ksuinit release/ksuinit-aarch64
-        cp target/x86_64-unknown-linux-musl/release/ksuinit release/ksuinit-x86_64
+        cp zig-out/aarch64/ksuinit release/ksuinit-aarch64
+        cp zig-out/x86_64/ksuinit release/ksuinit-x86_64
 
     - name: Upload release assets
       if: startsWith(github.ref, 'refs/tags/')
