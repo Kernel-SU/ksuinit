@@ -50,11 +50,6 @@ fn parse_kallsyms() -> Result<HashMap<String, u64>> {
 }
 
 pub fn load_module(path: &str) -> Result<()> {
-    // check if self is init process(pid == 1)
-    if !rustix::process::getpid().is_init() {
-        anyhow::bail!("{}", "Invalid process");
-    }
-
     let mut buffer =
         fs::read(path).with_context(|| format!("Cannot read file {}", path))?;
     let elf = Elf::parse(&buffer)?;
@@ -78,7 +73,7 @@ pub fn load_module(path: &str) -> Result<()> {
 
         let offset = elf.syms.offset() + index * Sym::size_with(elf.syms.ctx());
         let Some(real_addr) = kernel_symbols.get(name) else {
-            log::warn!("Cannot found symbol: {}", &name);
+            eprintln!("Warning: Cannot find symbol: {}", &name);
             continue;
         };
         sym.st_shndx = section_header::SHN_ABS as usize;

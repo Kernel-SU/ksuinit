@@ -1,3 +1,3 @@
-# ksuinit standalone
+# ksuinit ko loader
 
-will be integrated into kernelsu soon
+The real ksuinit has already been integrated into the main KernelSU repository, and this repository retains only a minimal ko loader.

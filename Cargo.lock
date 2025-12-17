@@ -35,25 +35,13 @@ dependencies = [
 ]
 
 [[package]]
-name = "kernlog"
-version = "0.3.1"
-source = "git+https://github.com/tiann/kernlog.rs#ff0b1bd6d5261eae0fa297cec6951fe8d982151a"
-dependencies = [
- "libc",
- "log",
-]
-
-[[package]]
 name = "ksuinit"
 version = "2.0.0"
 dependencies = [
  "anyhow",
  "goblin",
- "kernlog",
- "log",
  "rustix",
  "scroll",
- "syscalls",
 ]
 
 [[package]]
@@ -140,12 +128,6 @@ dependencies = [
  "quote",
  "unicode-ident",
 ]
-
-[[package]]
-name = "syscalls"
-version = "0.6.15"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "56b389b38331a454883a34fd19f25cbd1510b3510ff7aa28cb8d6de85d888439"
 
 [[package]]
 name = "unicode-ident"
